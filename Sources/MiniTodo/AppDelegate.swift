@@ -5,7 +5,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var panel: FloatingPanel?
     private var hotKeyManager: HotKeyManager?
     private var settingsWindow: NSWindow?
-    private let store = TodoStore()
+    private let todoStore = TodoStore()
+    private let memoStore = MemoStore()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -15,8 +16,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func setupPanel() {
-        let contentView = ContentView(store: store)
-        panel = FloatingPanel(contentView: contentView)
+        let mainView = MainTabView(todoStore: todoStore, memoStore: memoStore)
+        panel = FloatingPanel(contentView: mainView)
     }
 
     private func setupHotKey() {

@@ -93,3 +93,84 @@ final class TodoStoreTests: XCTestCase {
         try? FileManager.default.removeItem(at: url)
     }
 }
+
+// MARK: - MemoItem Tests
+
+final class MemoItemTests: XCTestCase {
+    func testTitle() {
+        let memo = MemoItem(content: "First line\nSecond line")
+        XCTAssertEqual(memo.title, "First line")
+    }
+
+    func testTitleSingleLine() {
+        let memo = MemoItem(content: "Only one line")
+        XCTAssertEqual(memo.title, "Only one line")
+    }
+}
+
+// MARK: - MemoStore Tests
+
+final class MemoStoreTests: XCTestCase {
+    private func makeTempStore() -> MemoStore {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString)
+            .appendingPathExtension("json")
+        return MemoStore(fileURL: url)
+    }
+
+    func testAddMemo() {
+        let store = makeTempStore()
+        store.add(content: "Hello memo")
+        XCTAssertEqual(store.items.count, 1)
+        XCTAssertEqual(store.items.first?.content, "Hello memo")
+    }
+
+    func testAddEmptyIsIgnored() {
+        let store = makeTempStore()
+        store.add(content: "   ")
+        XCTAssertTrue(store.items.isEmpty)
+    }
+
+    func testAddInsertsAtTop() {
+        let store = makeTempStore()
+        store.add(content: "First")
+        store.add(content: "Second")
+        XCTAssertEqual(store.items[0].content, "Second")
+        XCTAssertEqual(store.items[1].content, "First")
+    }
+
+    func testUpdateMemo() {
+        let store = makeTempStore()
+        store.add(content: "Original")
+        let item = store.items[0]
+
+        store.update(item, content: "Updated")
+        XCTAssertEqual(store.items[0].content, "Updated")
+    }
+
+    func testDeleteMemo() {
+        let store = makeTempStore()
+        store.add(content: "A")
+        store.add(content: "B")
+        let itemB = store.items[0] // "B" is at top
+
+        store.delete(itemB)
+        XCTAssertEqual(store.items.count, 1)
+        XCTAssertEqual(store.items[0].content, "A")
+    }
+
+    func testPersistence() {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString)
+            .appendingPathExtension("json")
+
+        let store1 = MemoStore(fileURL: url)
+        store1.add(content: "Persist memo")
+
+        let store2 = MemoStore(fileURL: url)
+        XCTAssertEqual(store2.items.count, 1)
+        XCTAssertEqual(store2.items.first?.content, "Persist memo")
+
+        try? FileManager.default.removeItem(at: url)
+    }
+}

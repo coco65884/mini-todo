@@ -14,7 +14,6 @@ struct ContentView: View {
             Divider()
             completedToggle
         }
-        .frame(width: 320, height: 400)
         .onAppear {
             isInputFocused = true
         }
