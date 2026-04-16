@@ -8,40 +8,16 @@ struct ContentView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            headerView
-            Divider()
             inputField
             Divider()
             todoList
+            Divider()
+            completedToggle
         }
         .frame(width: 320, height: 400)
-        .background(.ultraThinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
         .onAppear {
             isInputFocused = true
         }
-    }
-
-    // MARK: - Header
-
-    private var headerView: some View {
-        HStack {
-            Text("Mini Todo")
-                .font(.headline)
-            Spacer()
-            Button {
-                showCompleted.toggle()
-            } label: {
-                Image(systemName: showCompleted
-                    ? "checkmark.circle.fill"
-                    : "checkmark.circle")
-                    .foregroundStyle(showCompleted ? .green : .secondary)
-            }
-            .buttonStyle(.plain)
-            .help(showCompleted ? "消化済みを非表示" : "消化済みを表示")
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
     }
 
     // MARK: - Input
@@ -96,6 +72,26 @@ struct ContentView: View {
             }
             .padding(.vertical, 4)
         }
+    }
+
+    // MARK: - Completed Toggle
+
+    private var completedToggle: some View {
+        Button {
+            showCompleted.toggle()
+        } label: {
+            HStack(spacing: 4) {
+                Image(systemName: showCompleted
+                    ? "checkmark.circle.fill"
+                    : "checkmark.circle")
+                Text(showCompleted ? "消化済みを非表示" : "消化済みを表示")
+                    .font(.caption)
+            }
+            .foregroundStyle(showCompleted ? .green : .secondary)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+        }
+        .buttonStyle(.plain)
     }
 
     private func sectionHeader(_ title: String) -> some View {
