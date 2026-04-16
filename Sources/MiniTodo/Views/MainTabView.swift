@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 enum AppTab: String, CaseIterable {
@@ -24,6 +25,7 @@ struct MainTabView: View {
     @ObservedObject var todoStore: TodoStore
     @ObservedObject var memoStore: MemoStore
     @State private var selectedTab: AppTab = AppTab.loadLast()
+    @State private var tabMonitor: Any?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -32,10 +34,8 @@ struct MainTabView: View {
             tabContent
         }
         .frame(width: 320, height: 400)
-        .onKeyPress(.tab, phases: .down) { _ in
-            switchTab()
-            return .handled
-        }
+        .onAppear { installTabMonitor() }
+        .onDisappear { removeTabMonitor() }
         .onChange(of: selectedTab) { _, newTab in
             newTab.saveLast()
         }
@@ -74,6 +74,24 @@ struct MainTabView: View {
             ContentView(store: todoStore)
         case .memo:
             MemoView(store: memoStore)
+        }
+    }
+
+    private func installTabMonitor() {
+        tabMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            if event.keyCode == 48 && event.modifierFlags
+                .intersection(.deviceIndependentFlagsMask) == [] {
+                switchTab()
+                return nil
+            }
+            return event
+        }
+    }
+
+    private func removeTabMonitor() {
+        if let monitor = tabMonitor {
+            NSEvent.removeMonitor(monitor)
+            tabMonitor = nil
         }
     }
 

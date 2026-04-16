@@ -2,10 +2,11 @@ import SwiftUI
 
 struct MemoView: View {
     @ObservedObject var store: MemoStore
-    @State private var newMemoContent = ""
+    @State private var inputContent = ""
     @State private var editingMemoID: UUID?
-    @State private var editingContent = ""
     @FocusState private var isInputFocused: Bool
+
+    private var isEditing: Bool { editingMemoID != nil }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -22,26 +23,53 @@ struct MemoView: View {
 
     private var inputField: some View {
         VStack(alignment: .leading, spacing: 4) {
-            ZStack(alignment: .topLeading) {
-                if newMemoContent.isEmpty {
-                    Text("新しいメモ... (Shift+Enter で登録)")
-                        .foregroundStyle(.tertiary)
-                        .padding(.horizontal, 4)
-                        .padding(.vertical, 6)
-                }
-                TextEditor(text: $newMemoContent)
-                    .font(.body)
-                    .scrollContentBackground(.hidden)
-                    .focused($isInputFocused)
-                    .frame(minHeight: 40, maxHeight: 80)
-                    .onKeyPress(.return, phases: .down) { keyPress in
-                        if keyPress.modifiers.contains(.shift) {
-                            store.add(content: newMemoContent)
-                            newMemoContent = ""
-                            return .handled
-                        }
-                        return .ignored
+            TextEditor(text: $inputContent)
+                .font(.body)
+                .scrollContentBackground(.hidden)
+                .focused($isInputFocused)
+                .frame(minHeight: 50, maxHeight: 80)
+                .overlay(alignment: .topLeading) {
+                    if inputContent.isEmpty {
+                        Text(isEditing
+                            ? "編集中... (Shift+Enter で保存)"
+                            : "新しいメモ... (Shift+Enter で登録)")
+                            .foregroundStyle(.tertiary)
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 8)
+                            .allowsHitTesting(false)
                     }
+                }
+                .onKeyPress(.return, phases: .down) { keyPress in
+                    if keyPress.modifiers.contains(.shift) {
+                        if let editID = editingMemoID,
+                           let item = store.items.first(where: { $0.id == editID }) {
+                            store.update(item, content: inputContent)
+                            editingMemoID = nil
+                        } else {
+                            store.add(content: inputContent)
+                        }
+                        inputContent = ""
+                        return .handled
+                    }
+                    return .ignored
+                }
+
+            if isEditing {
+                HStack {
+                    Text("編集中")
+                        .font(.caption2)
+                        .foregroundStyle(.orange)
+                    Spacer()
+                    Button("キャンセル") {
+                        editingMemoID = nil
+                        inputContent = ""
+                    }
+                    .font(.caption)
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.secondary)
+                }
+                .padding(.horizontal, 4)
+                .padding(.bottom, 2)
             }
         }
         .padding(.horizontal, 12)
@@ -61,11 +89,7 @@ struct MemoView: View {
                         .padding(.vertical, 8)
                 }
                 ForEach(store.items) { item in
-                    if editingMemoID == item.id {
-                        editRow(item)
-                    } else {
-                        memoRow(item)
-                    }
+                    memoRow(item)
                     Divider().padding(.horizontal, 12)
                 }
             }
@@ -86,63 +110,28 @@ struct MemoView: View {
 
             Spacer()
 
-            VStack(spacing: 4) {
-                Button {
-                    editingMemoID = item.id
-                    editingContent = item.content
-                } label: {
-                    Image(systemName: "pencil")
-                        .foregroundStyle(.secondary)
-                        .font(.caption)
-                }
-                .buttonStyle(.plain)
-
-                Button {
-                    store.delete(item)
-                } label: {
-                    Image(systemName: "trash")
-                        .foregroundStyle(.red.opacity(0.7))
-                        .font(.caption)
-                }
-                .buttonStyle(.plain)
+            Button {
+                store.delete(item)
+            } label: {
+                Image(systemName: "trash")
+                    .foregroundStyle(.red.opacity(0.7))
+                    .font(.caption)
             }
+            .buttonStyle(.plain)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
         .contentShape(Rectangle())
-    }
-
-    private func editRow(_ item: MemoItem) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            TextEditor(text: $editingContent)
-                .font(.body)
-                .scrollContentBackground(.hidden)
-                .frame(minHeight: 40, maxHeight: 100)
-                .onKeyPress(.return, phases: .down) { keyPress in
-                    if keyPress.modifiers.contains(.shift) {
-                        store.update(item, content: editingContent)
-                        editingMemoID = nil
-                        return .handled
-                    }
-                    return .ignored
-                }
-
-            HStack {
-                Text("Shift+Enter で保存")
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
-                Spacer()
-                Button("キャンセル") {
-                    editingMemoID = nil
-                }
-                .font(.caption)
-                .buttonStyle(.plain)
-                .foregroundStyle(.secondary)
-            }
+        .background(
+            editingMemoID == item.id
+                ? Color.accentColor.opacity(0.08)
+                : Color.clear
+        )
+        .onTapGesture {
+            editingMemoID = item.id
+            inputContent = item.content
+            isInputFocused = true
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
-        .background(Color.accentColor.opacity(0.05))
     }
 
     private func formatDate(_ date: Date) -> String {
