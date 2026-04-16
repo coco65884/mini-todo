@@ -5,18 +5,19 @@ final class FloatingPanel: NSPanel {
     init(contentView: some View) {
         super.init(
             contentRect: NSRect(x: 0, y: 0, width: 320, height: 400),
-            styleMask: [.titled, .closable, .fullSizeContentView, .nonactivatingPanel],
+            styleMask: [.titled, .closable, .nonactivatingPanel],
             backing: .buffered,
             defer: false
         )
 
+        self.title = "Mini Todo"
         self.titlebarAppearsTransparent = true
-        self.titleVisibility = .hidden
+        self.titleVisibility = .visible
         self.isMovableByWindowBackground = true
         self.level = .floating
         self.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         self.isOpaque = false
-        self.backgroundColor = .clear
+        self.backgroundColor = .windowBackgroundColor
         self.hasShadow = true
         self.becomesKeyOnlyIfNeeded = false
 

@@ -15,8 +15,8 @@ final class HotKeyManager {
             id: 1
         )
 
-        // kVK_ANSI_T = 0x11, Cmd+Shift
-        let modifiers: UInt32 = UInt32(cmdKey | shiftKey)
+        // Ctrl+Opt+T
+        let modifiers: UInt32 = UInt32(controlKey | optionKey)
         let keyCode: UInt32 = UInt32(kVK_ANSI_T)
 
         var eventType = EventTypeSpec(
