@@ -118,7 +118,7 @@ struct ContentView: View {
             Text(item.title)
                 .strikethrough(item.isCompleted)
                 .foregroundStyle(item.isCompleted ? .secondary : .primary)
-                .lineLimit(1)
+                .fixedSize(horizontal: false, vertical: true)
 
             Spacer()
         }
