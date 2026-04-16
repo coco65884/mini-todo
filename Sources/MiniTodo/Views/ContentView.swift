@@ -29,12 +29,16 @@ struct ContentView: View {
         HStack(spacing: 8) {
             Image(systemName: "plus.circle.fill")
                 .foregroundStyle(.blue)
-            TextField("新しいタスク...", text: $newTodoTitle)
+            TextField("新しいタスク... (⌘+Enter で登録)", text: $newTodoTitle)
                 .textFieldStyle(.plain)
                 .focused($isInputFocused)
-                .onSubmit {
-                    store.add(title: newTodoTitle)
-                    newTodoTitle = ""
+                .onKeyPress(.return, phases: .down) { keyPress in
+                    if keyPress.modifiers.contains(.command) {
+                        store.add(title: newTodoTitle)
+                        newTodoTitle = ""
+                        return .handled
+                    }
+                    return .ignored
                 }
         }
         .padding(.horizontal, 12)
