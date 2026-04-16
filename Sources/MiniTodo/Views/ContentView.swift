@@ -49,7 +49,7 @@ struct ContentView: View {
 
     private var todoList: some View {
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 0) {
                 if !store.pendingPreviousDays.isEmpty {
                     sectionHeader("前日以前")
                     ForEach(store.pendingPreviousDays) { item in
@@ -71,9 +71,10 @@ struct ContentView: View {
 
                 if showCompleted && !store.completedItems.isEmpty {
                     Divider().padding(.vertical, 4)
-                    sectionHeader("消化済み")
+                    sectionHeader("終了タスク")
                     ForEach(store.completedItems) { item in
                         todoRow(item)
+                            .id("\(item.id)-completed")
                     }
                 }
             }
@@ -91,7 +92,7 @@ struct ContentView: View {
                 Image(systemName: showCompleted
                     ? "checkmark.circle.fill"
                     : "checkmark.circle")
-                Text(showCompleted ? "消化済みを非表示" : "消化済みを表示")
+                Text(showCompleted ? "終了タスクを非表示" : "終了タスクを表示")
                     .font(.caption)
             }
             .foregroundStyle(showCompleted ? .green : .secondary)
