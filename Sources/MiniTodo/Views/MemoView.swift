@@ -2,9 +2,10 @@ import SwiftUI
 
 struct MemoView: View {
     @ObservedObject var store: MemoStore
+    var focusTrigger: UUID
     @State private var inputContent = ""
     @State private var editingMemoID: UUID?
-    @FocusState private var isInputFocused: Bool
+    @FocusState var isInputFocused: Bool
 
     private var isEditing: Bool { editingMemoID != nil }
 
@@ -17,42 +18,30 @@ struct MemoView: View {
         .onAppear {
             isInputFocused = true
         }
+        .onChange(of: focusTrigger) { _, _ in
+            isInputFocused = true
+        }
     }
 
     // MARK: - Input
 
     private var inputField: some View {
         VStack(alignment: .leading, spacing: 4) {
-            TextEditor(text: $inputContent)
-                .font(.body)
-                .scrollContentBackground(.hidden)
-                .focused($isInputFocused)
-                .frame(minHeight: 50, maxHeight: 80)
-                .overlay(alignment: .topLeading) {
-                    if inputContent.isEmpty {
-                        Text(isEditing
-                            ? "編集中... (Shift+Enter で保存)"
-                            : "新しいメモ... (Shift+Enter で登録)")
-                            .foregroundStyle(.tertiary)
-                            .padding(.horizontal, 5)
-                            .padding(.vertical, 8)
-                            .allowsHitTesting(false)
-                    }
+            TextField(
+                isEditing ? "編集中... (⌘+Enter で保存)" : "新しいメモ... (⌘+Enter で登録)",
+                text: $inputContent,
+                axis: .vertical
+            )
+            .textFieldStyle(.plain)
+            .lineLimit(1...5)
+            .focused($isInputFocused)
+            .onKeyPress(.return, phases: .down) { keyPress in
+                if keyPress.modifiers.contains(.command) {
+                    submitInput()
+                    return .handled
                 }
-                .onKeyPress(.return, phases: .down) { keyPress in
-                    if keyPress.modifiers.contains(.shift) {
-                        if let editID = editingMemoID,
-                           let item = store.items.first(where: { $0.id == editID }) {
-                            store.update(item, content: inputContent)
-                            editingMemoID = nil
-                        } else {
-                            store.add(content: inputContent)
-                        }
-                        inputContent = ""
-                        return .handled
-                    }
-                    return .ignored
-                }
+                return .ignored
+            }
 
             if isEditing {
                 HStack {
@@ -73,7 +62,7 @@ struct MemoView: View {
             }
         }
         .padding(.horizontal, 12)
-        .padding(.vertical, 6)
+        .padding(.vertical, 8)
     }
 
     // MARK: - List
@@ -132,6 +121,17 @@ struct MemoView: View {
             inputContent = item.content
             isInputFocused = true
         }
+    }
+
+    private func submitInput() {
+        if let editID = editingMemoID,
+           let item = store.items.first(where: { $0.id == editID }) {
+            store.update(item, content: inputContent)
+            editingMemoID = nil
+        } else {
+            store.add(content: inputContent)
+        }
+        inputContent = ""
     }
 
     private func formatDate(_ date: Date) -> String {
