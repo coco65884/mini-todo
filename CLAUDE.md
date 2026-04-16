@@ -11,7 +11,7 @@
 - 作業は必ず `feature/<TASK-ID>-<description>` ブランチで行う
 - mainへの直接pushは原則禁止
 - 機能(issue)ごとにブランチを切り替える
-- 昨日は1つずつ(1 issueずつ)実装し、実装が終わったらPushを行い、CI/ruffが通っているか、mergeされたかを確認してから次のタスクを行う
+- 機能は1つずつ(1 issueずつ)実装し、実装が終わったらPushを行い、CIが通っているか、mergeされたかを確認してから次のタスクを行う
 
 ### コミットメッセージ形式
 - `feat:` 新機能追加
@@ -27,8 +27,8 @@ gh issue edit <NUMBER> --add-assignee "@me" --add-label "agent:claimed"
 # 2. ブランチ作成
 git checkout -b feature/<TASK-ID>-<description> main
 
-# 3. 実装 → テスト → commit（Pythonの例）
-ruff check . && ruff format --check . && pytest
+# 3. 実装 → テスト → commit
+swift build && swift test
 git commit -m "feat: <TASK-ID> <description>
 
 Closes #<ISSUE-NUMBER>"
@@ -39,30 +39,16 @@ gh pr create --title "..." --body "Closes #<NUMBER>" --base main
 gh pr merge --auto --squash
 ```
 
-## 初期セットアップ
-
-プロジェクト開始時に以下を確認すること。
-
-- `.github/workflows/ci.yml` が存在しない場合、プロジェクトに適した CI workflow を作成する
-- 既存の CI workflow がプロジェクトの言語・ツールチェーンと合っていない場合は修正する
-  - Python: ruff + pytest（デフォルトテンプレート）
-  - Node.js: eslint + prettier + vitest 等に差し替え
-- `pyproject.toml` (または `package.json`) がまだなければ、プロジェクト構成に応じて作成する
-
 ## 品質チェック
 
-プロジェクトに応じたリンター・フォーマッター・型チェックを実行してからコミットすること。
+コミット前に以下を実行すること。
 
-### Pythonの例
 ```bash
-ruff check .          # リント
-ruff format --check . # フォーマットチェック
-pytest                # テスト
+export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
+swiftlint lint --strict Sources/ Tests/  # リント
+swift build                               # ビルド
+swift test                                # テスト
 ```
 
-### Node.js / TypeScriptの例
-```bash
-npm run build         # 型チェック + ビルド
-npm run lint          # ESLint
-npm run format:check  # Prettierフォーマットチェック
-```
+> **Note**: ローカル環境では `DEVELOPER_DIR` を Xcode.app に向ける必要がある（CommandLineTools にはXCTest・SourceKit が含まれないため）。
+> CI (GitHub Actions) では Xcode がデフォルト toolchain のため不要。
