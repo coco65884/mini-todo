@@ -78,8 +78,7 @@ struct MainTabView: View {
                 Image(systemName: "gearshape")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                    .frame(maxHeight: .infinity)
-                    .padding(.horizontal, 8)
+                    .frame(width: 32, height: 32)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
