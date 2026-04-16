@@ -3,21 +3,20 @@ import AppKit
 
 final class HotKeyManager {
     private var hotKeyRef: EventHotKeyRef?
+    private var eventHandlerRef: EventHandlerRef?
     private let handler: () -> Void
 
     init(handler: @escaping () -> Void) {
         self.handler = handler
     }
 
-    func register() {
+    func register(config: KeyConfig = .load()) {
+        unregister()
+
         let hotKeyID = EventHotKeyID(
             signature: OSType(0x4D54_444F), // "MTDO"
             id: 1
         )
-
-        // Ctrl+Opt+T
-        let modifiers: UInt32 = UInt32(controlKey | optionKey)
-        let keyCode: UInt32 = UInt32(kVK_ANSI_T)
 
         var eventType = EventTypeSpec(
             eventClass: OSType(kEventClassKeyboard),
@@ -39,12 +38,12 @@ final class HotKeyManager {
             1,
             &eventType,
             selfPtr,
-            nil
+            &eventHandlerRef
         )
 
         RegisterEventHotKey(
-            keyCode,
-            modifiers,
+            UInt32(config.keyCode),
+            config.carbonModifiers,
             hotKeyID,
             GetApplicationEventTarget(),
             0,
@@ -56,6 +55,10 @@ final class HotKeyManager {
         if let hotKeyRef {
             UnregisterEventHotKey(hotKeyRef)
             self.hotKeyRef = nil
+        }
+        if let eventHandlerRef {
+            RemoveEventHandler(eventHandlerRef)
+            self.eventHandlerRef = nil
         }
     }
 
