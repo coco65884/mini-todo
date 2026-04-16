@@ -4,10 +4,7 @@ struct MemoView: View {
     @ObservedObject var store: MemoStore
     var focusTrigger: UUID
     @State private var inputContent = ""
-    @State private var editingMemoID: UUID?
     @FocusState var isInputFocused: Bool
-
-    private var isEditing: Bool { editingMemoID != nil }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -26,43 +23,20 @@ struct MemoView: View {
     // MARK: - Input
 
     private var inputField: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            TextField(
-                isEditing ? "編集中... (⌘+Enter で保存)" : "新しいメモ... (⌘+Enter で登録)",
-                text: $inputContent,
-                axis: .vertical
-            )
+        TextField("新しいメモ... (⌘+Enter で登録)", text: $inputContent, axis: .vertical)
             .textFieldStyle(.plain)
             .lineLimit(1...5)
             .focused($isInputFocused)
             .onKeyPress(.return, phases: .down) { keyPress in
                 if keyPress.modifiers.contains(.command) {
-                    submitInput()
+                    store.add(content: inputContent)
+                    inputContent = ""
                     return .handled
                 }
                 return .ignored
             }
-
-            if isEditing {
-                HStack {
-                    Text("編集中")
-                        .font(.caption2)
-                        .foregroundStyle(.orange)
-                    Spacer()
-                    Button("キャンセル") {
-                        editingMemoID = nil
-                        inputContent = ""
-                    }
-                    .font(.caption)
-                    .buttonStyle(.plain)
-                    .foregroundStyle(.secondary)
-                }
-                .padding(.horizontal, 4)
-                .padding(.bottom, 2)
-            }
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
     }
 
     // MARK: - List
@@ -91,7 +65,7 @@ struct MemoView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(item.content)
                     .font(.body)
-                    .lineLimit(5)
+                    .fixedSize(horizontal: false, vertical: true)
                 Text(formatDate(item.updatedAt))
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
@@ -111,27 +85,11 @@ struct MemoView: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
         .contentShape(Rectangle())
-        .background(
-            editingMemoID == item.id
-                ? Color.accentColor.opacity(0.08)
-                : Color.clear
-        )
         .onTapGesture {
-            editingMemoID = item.id
             inputContent = item.content
+            store.delete(item)
             isInputFocused = true
         }
-    }
-
-    private func submitInput() {
-        if let editID = editingMemoID,
-           let item = store.items.first(where: { $0.id == editID }) {
-            store.update(item, content: inputContent)
-            editingMemoID = nil
-        } else {
-            store.add(content: inputContent)
-        }
-        inputContent = ""
     }
 
     private func formatDate(_ date: Date) -> String {
