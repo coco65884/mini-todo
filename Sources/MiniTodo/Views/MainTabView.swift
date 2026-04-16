@@ -50,27 +50,30 @@ struct MainTabView: View {
     }
 
     private var tabBar: some View {
-        HStack(spacing: 0) {
-            ForEach(AppTab.allCases, id: \.self) { tab in
-                Button {
-                    selectedTab = tab
-                } label: {
-                    Text(tab.rawValue)
-                        .font(.subheadline)
-                        .fontWeight(selectedTab == tab ? .semibold : .regular)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .background(
-                            selectedTab == tab
-                                ? Color.accentColor.opacity(0.1)
-                                : Color.clear
-                        )
-                        .foregroundStyle(
-                            selectedTab == tab ? .primary : .secondary
-                        )
-                        .contentShape(Rectangle())
+        ZStack(alignment: .trailing) {
+            HStack(spacing: 0) {
+                ForEach(AppTab.allCases, id: \.self) { tab in
+                    Button {
+                        selectedTab = tab
+                    } label: {
+                        Text(tab.rawValue)
+                            .font(.subheadline)
+                            .fontWeight(selectedTab == tab ? .semibold : .regular)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .background(
+                                selectedTab == tab
+                                    ? Color.accentColor.opacity(0.1)
+                                    : Color.clear
+                            )
+                            .foregroundStyle(
+                                selectedTab == tab ? .primary : .secondary
+                            )
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
             }
+            .padding(.trailing, 32)
 
             Button {
                 onOpenSettings()
