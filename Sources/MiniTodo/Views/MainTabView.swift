@@ -26,6 +26,7 @@ struct MainTabView: View {
     @ObservedObject var memoStore: MemoStore
     @State private var selectedTab: AppTab = AppTab.loadLast()
     @State private var tabMonitor: Any?
+    @State private var focusTrigger = UUID()
 
     var body: some View {
         VStack(spacing: 0) {
@@ -38,6 +39,7 @@ struct MainTabView: View {
         .onDisappear { removeTabMonitor() }
         .onChange(of: selectedTab) { _, newTab in
             newTab.saveLast()
+            focusTrigger = UUID()
         }
     }
 
@@ -71,9 +73,9 @@ struct MainTabView: View {
     private var tabContent: some View {
         switch selectedTab {
         case .todo:
-            ContentView(store: todoStore)
+            ContentView(store: todoStore, focusTrigger: focusTrigger)
         case .memo:
-            MemoView(store: memoStore)
+            MemoView(store: memoStore, focusTrigger: focusTrigger)
         }
     }
 

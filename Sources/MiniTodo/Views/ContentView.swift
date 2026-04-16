@@ -2,9 +2,10 @@ import SwiftUI
 
 struct ContentView: View {
     @ObservedObject var store: TodoStore
+    var focusTrigger: UUID
     @State private var newTodoTitle = ""
     @State private var showCompleted = false
-    @FocusState private var isInputFocused: Bool
+    @FocusState var isInputFocused: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -15,6 +16,9 @@ struct ContentView: View {
             completedToggle
         }
         .onAppear {
+            isInputFocused = true
+        }
+        .onChange(of: focusTrigger) { _, _ in
             isInputFocused = true
         }
     }
