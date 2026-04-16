@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 struct MemoView: View {
@@ -23,20 +24,32 @@ struct MemoView: View {
     // MARK: - Input
 
     private var inputField: some View {
-        TextField("新しいメモ... (⌘+Enter で登録)", text: $inputContent, axis: .vertical)
-            .textFieldStyle(.plain)
-            .lineLimit(1...5)
-            .focused($isInputFocused)
-            .onKeyPress(.return, phases: .down) { keyPress in
-                if keyPress.modifiers.contains(.command) {
-                    store.add(content: inputContent)
-                    inputContent = ""
-                    return .handled
-                }
-                return .ignored
+        ZStack(alignment: .topLeading) {
+            TextEditor(text: $inputContent)
+                .font(.body)
+                .scrollContentBackground(.hidden)
+                .focused($isInputFocused)
+                .frame(minHeight: 50, maxHeight: 80)
+
+            if inputContent.isEmpty {
+                Text("新しいメモ... (⌘+Enter で登録)")
+                    .font(.body)
+                    .foregroundStyle(.tertiary)
+                    .padding(.top, 1)
+                    .padding(.leading, 5)
+                    .allowsHitTesting(false)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .onKeyPress(.return, phases: .down) { keyPress in
+            if keyPress.modifiers.contains(.command) {
+                store.add(content: inputContent)
+                inputContent = ""
+                return .handled
+            }
+            return .ignored
+        }
     }
 
     // MARK: - List
