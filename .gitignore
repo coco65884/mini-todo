@@ -8,6 +8,9 @@ DerivedData/
 *.xcodeproj/xcuserdata/
 *.xcworkspace/xcuserdata/
 
+# Generated iconset (keep .icns only)
+Assets/AppIcon.iconset/
+
 # IDE
 .vscode/
 .idea/
