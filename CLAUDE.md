@@ -36,6 +36,7 @@ Closes #<ISSUE-NUMBER>"
 # 4. push → PR → merge
 git push -u origin feature/<TASK-ID>-<description>
 gh pr create --title "..." --body "Closes #<NUMBER>" --base main
+gh pr merge --auto --squash
 ```
 
 ## 初期セットアップ
