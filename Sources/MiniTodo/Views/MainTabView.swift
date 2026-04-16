@@ -24,14 +24,20 @@ enum AppTab: String, CaseIterable {
 struct MainTabView: View {
     @ObservedObject var todoStore: TodoStore
     @ObservedObject var memoStore: MemoStore
+    var onOpenSettings: () -> Void
     @State private var selectedTab: AppTab = AppTab.loadLast()
     @State private var tabMonitor: Any?
     @State private var focusTrigger = UUID()
+    @State private var showLoginHint = !UserDefaults.standard.bool(forKey: "didShowLoginHint")
 
     var body: some View {
         VStack(spacing: 0) {
             tabBar
             Divider()
+            if showLoginHint {
+                loginHintBanner
+                Divider()
+            }
             tabContent
         }
         .frame(width: 320, height: 400)
@@ -65,8 +71,50 @@ struct MainTabView: View {
                 }
                 .buttonStyle(.plain)
             }
+
+            Button {
+                onOpenSettings()
+            } label: {
+                Image(systemName: "gearshape")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .frame(maxHeight: .infinity)
+                    .padding(.horizontal, 8)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .help("設定")
         }
         .frame(height: 32)
+    }
+
+    private var loginHintBanner: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "info.circle.fill")
+                .foregroundStyle(.blue)
+                .font(.caption)
+            Text("ログイン時に自動起動すると便利です")
+                .font(.caption2)
+            Spacer()
+            Button("設定を開く") {
+                openLoginItemSettings()
+                dismissLoginHint()
+            }
+            .font(.caption2)
+            .buttonStyle(.bordered)
+            .controlSize(.mini)
+            Button {
+                dismissLoginHint()
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background(Color.blue.opacity(0.08))
     }
 
     @ViewBuilder
@@ -76,6 +124,17 @@ struct MainTabView: View {
             ContentView(store: todoStore, focusTrigger: focusTrigger)
         case .memo:
             MemoView(store: memoStore, focusTrigger: focusTrigger)
+        }
+    }
+
+    private func dismissLoginHint() {
+        showLoginHint = false
+        UserDefaults.standard.set(true, forKey: "didShowLoginHint")
+    }
+
+    private func openLoginItemSettings() {
+        if let url = URL(string: "x-apple.systempreferences:com.apple.LoginItems-Settings.extension") {
+            NSWorkspace.shared.open(url)
         }
     }
 

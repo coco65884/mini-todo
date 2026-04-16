@@ -16,7 +16,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func setupPanel() {
-        let mainView = MainTabView(todoStore: todoStore, memoStore: memoStore)
+        let mainView = MainTabView(
+            todoStore: todoStore,
+            memoStore: memoStore,
+            onOpenSettings: { [weak self] in self?.openSettings() }
+        )
         panel = FloatingPanel(contentView: mainView)
     }
 
